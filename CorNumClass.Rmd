@@ -1,0 +1,45 @@
+---
+title: "Correlated Numerical Data Analysis"
+author: "Azmi"
+date: "07/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(pacman)
+p_load(haven, tidyverse, summarytools)
+```
+
+
+
+#Tutorial 1
+
+```{r}
+myds <- read_dta("5.1.dta")
+head(myds)
+myds0 <- myds %>% 
+  mutate_if(is.labelled, funs(as_factor(.)))
+myds0 <- myds0 %>% 
+  mutate(gender = factor(female, labels = c("male","female")),
+         socialclass = factor(sclass, labels = c("manager_pro", "intermediate", "working", "unclassified")),
+         schooltype = factor(schtype, labels = c("independent", "state")),
+         urban = factor(schurban, labels = c("urban", "rural")),
+         denom = factor(schdenom, labels = c("Catholic", "other"))) %>% 
+  select(caseid, schoolid, score, cohort90, gender, socialclass, schooltype, urban, denom)
+head(myds0)
+```
+
+```{r}
+p_load(lme4)
+```
+
+```{r}
+multlevmodnull <- lmer(score ~ 1 + (1|schoolid), data = myds0, REML = F)
+multlevmodnull
+```
+
+
