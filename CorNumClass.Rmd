@@ -57,11 +57,70 @@ summary(multlevmodnull)
 tidy(multlevmodnull)
 ```
 
-## Student level - cohort
+## Student level - cohort (Random Intercept Model)
 
 ```{r}
-multlevmodcohort <- lmer(score ~ cohort90 + (1|schoolid), data = myds0)
-summary(multlevmodcohort)
+multlevmodcoh_RI <- lmer(score ~ cohort90 + (1|schoolid), data = myds0)
+summary(multlevmodcoh_RI)
 ```
 
-equation - score = 
+### Prediction - cohort
+
+```{r}
+scoreRI_pred <- augment(multlevmodcoh_RI)
+scoreRI_pred
+```
+
+```{r}
+ggplot(scoreRI_pred, aes(cohort90, .fitted, group = schoolid )) + geom_point() + geom_line() + theme_minimal()
+```
+
+
+
+## Student Level - cohort (Random Slope Model)
+
+```{r}
+multlevmodcoh_RS <- lmer(score ~ cohort90 + (1 + cohort90 | schoolid), data = myds0, REML = F)
+summary(multlevmodcoh_RS)
+```
+
+
+### bobyqa optimize
+
+```{r}
+multlevmodcoh_RSb <- lmer(score ~ cohort90 + (1 + cohort90 | schoolid), data = myds0, control = lmerControl(optimizer = "bobyqa"), REML = F)
+summary(multlevmodcoh_RSb)
+```
+
+### Prediction - with bobyqa optimize
+
+```{r}
+scoreRSb_pred <- augment(multlevmodcoh_RSb)
+scoreRSb_pred
+```
+
+### Compare RI & RS
+
+```{r}
+anova(multlevmodcoh_RI, multlevmodcoh_RSb)
+```
+
+### plot
+
+```{r}
+ra_eff_rs <- ranef(multlevmodcoh_RSb, condVar = T)
+head(ra_eff_rs)
+```
+
+```{r}
+ra_eff_rs_scid <- ra_eff_rs$schoolid
+ra_eff_rs_scid2 <- dplyr::rename(ra_eff_rs_scid,
+                     rs_slope = cohort90,
+                     rs_intercept = "(Intercept)")
+ggplot(ra_eff_rs_scid2, aes(x = rs_intercept, y = rs_slope)) +
+  geom_point() +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  theme_minimal()
+```
+
