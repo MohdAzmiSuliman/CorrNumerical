@@ -124,3 +124,116 @@ ggplot(ra_eff_rs_scid2, aes(x = rs_intercept, y = rs_slope)) +
   theme_minimal()
 ```
 
+## Cohort (Random Slope Model) + Gender (assume no random slope)
+
+```{r}
+multlevmodcoh_RSgen_noRS <- lmer(score ~ cohort90 + gender + (1 + cohort90 | schoolid), data = myds0, REML = F)
+summary(multlevmodcoh_RSgen_noRS)
+```
+
+
+### bobyqa optimizer
+
+```{r}
+multlevmodcoh_RSgen_noRSb <- lmer(score ~ cohort90 + gender + (1 + cohort90 | schoolid), data = myds0, REML = F, lmerControl(optimizer = "bobyqa"))
+summary(multlevmodcoh_RSgen_noRSb)
+```
+
+## Cohort (Random Slope Model) + Gender (random slope)
+
+```{r}
+multlevmodcoh_RSgen_RS <- lmer(score ~ cohort90 + gender + (1 + cohort90 + gender | schoolid), data = myds0, REML = F)
+summary(multlevmodcoh_RSgen_RS)
+```
+
+
+### Bobyqa optimizer
+
+```{r}
+multlevmodcoh_RSgen_RSb <- lmer(score ~ cohort90 + gender + (1 + cohort90 + gender | schoolid), data = myds0, REML = F, lmerControl(optimizer = "bobyqa"))
+summary(multlevmodcoh_RSgen_RSb)
+```
+
+### comparison
+
+```{r}
+anova(multlevmodcoh_RSgen_noRSb, multlevmodcoh_RSgen_RSb)
+```
+
+# Level 2 Explanatory
+
+social class as level 2 explanatory
+
+```{r}
+freq(myds0$socialclass)
+```
+
+
+## Gender (lv1) Class (lv2)
+
+```{r}
+mlmcohRSgendernoRS_classb <- lmer(score ~ cohort90 + gender + socialclass +
+                                   (1 + cohort90 | schoolid), data = myds0,
+                                  REML = F, lmerControl(optimizer = "bobyqa"))
+summary(mlmcohRSgendernoRS_classb)
+```
+
+```{r}
+mlmcohRSgendernoRS_classb1 <- lmer(score ~ cohort90 + gender + factor(socialclass) +
+                                   (1 + cohort90 | schoolid), data = myds0,
+                                  REML = F, lmerControl(optimizer = "bobyqa"))
+summary(mlmcohRSgendernoRS_classb1)
+```
+
+to confirm with prof. why need factor
+
+# Interaction
+
+```{r}
+fulmlm_int <- lmer(score ~ cohort90 + gender + socialclass + schooltype + urban +
+                     cohort90:schooltype + (1 + cohort90 | schoolid), data = myds0,
+                   REML = F, lmerControl(optimizer = "bobyqa"))
+summary(fulmlm_int)
+```
+
+# Assumption
+
+using gender model
+
+```{r}
+summary(multlevmodcoh_RSgen_RSb)
+```
+
+```{r}
+predscore2 <- augment(multlevmodcoh_RSgen_RSb)
+predscore2
+```
+
+## Plot 1
+
+```{r}
+p_load(merTools)
+```
+
+```{r}
+RE_multlevmodcoh_RSgen_RSb <- REsim(multlevmodcoh_RSgen_RSb)
+plotREsim(RE_multlevmodcoh_RSgen_RSb)
+```
+
+
+## Plot 2
+
+```{r}
+p_load(lattice)
+```
+
+```{r}
+ran_multlevmodcoh_RSgen_RSb <- ranef(multlevmodcoh_RSgen_RSb, condVar = T)
+dotplot(ran_multlevmodcoh_RSgen_RSb)
+```
+
+```{r}
+plot(multlevmodcoh_RSgen_RSb)
+qqmath(multlevmodcoh_RSgen_RSb)
+```
+
