@@ -11,12 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(pacman)
-p_load(haven, tidyverse, summarytools)
+p_load(haven, tidyverse, summarytools, broom)
 ```
 
 
 
-#Tutorial 1
+# Tutorial 1
 
 ```{r}
 myds <- read_dta("5.1.dta")
@@ -34,12 +34,34 @@ head(myds0)
 ```
 
 ```{r}
+mydsgdenomurban <- myds0 %>% group_by(denom, urban)
+ctable(mydsgdenomurban$socialclass, mydsgdenomurban$schooltype)
+```
+
+## Null model
+
+```{r}
+lmodnull <- lm(score ~ 1, data = myds0)
+summary(lmodnull)
+```
+
+## Null Model MLE
+
+```{r}
 p_load(lme4)
 ```
 
 ```{r}
 multlevmodnull <- lmer(score ~ 1 + (1|schoolid), data = myds0, REML = F)
-multlevmodnull
+summary(multlevmodnull)
+tidy(multlevmodnull)
 ```
 
+## Student level - cohort
 
+```{r}
+multlevmodcohort <- lmer(score ~ cohort90 + (1|schoolid), data = myds0)
+summary(multlevmodcohort)
+```
+
+equation - score = 
