@@ -36,6 +36,8 @@ head(myds0)
 ```{r}
 mydsgdenomurban <- myds0 %>% group_by(denom, urban)
 ctable(mydsgdenomurban$socialclass, mydsgdenomurban$schooltype)
+
+myds0 %>% group_by(schoolid) %>% summarise(meanscore = mean(score), freq = n()) %>% head()
 ```
 
 ## Null model
@@ -57,24 +59,75 @@ summary(multlevmodnull)
 tidy(multlevmodnull)
 ```
 
+multlevmodnull <- lmer(score ~ 1 + (1|schoolid), data = myds0, REML = F)
+
+something + (1|schooldid) something here is random intercept
+
+(1 + something | schoolid) something here in random slope
+
+at average score is 30.60, when consider the variance of schoolid - with SD of the average 7.81
+
+(compare with mean score, regardless of schoolid, is 31.09)
+
+### compare with null model using loglikelihood
+
+```{r}
+logLik(lmodnull)
+logLik(multlevmodnull)
+```
+difference log-likelihood = -2 (LL1 - LL2)
+
+```{r}
+-2 * (logLik(multlevmodnull)-logLik(lmodnull))
+```
+
+
 ## Student level - cohort (Random Intercept Model)
 
 ```{r}
 multlevmodcoh_RI <- lmer(score ~ cohort90 + (1|schoolid), data = myds0)
 summary(multlevmodcoh_RI)
+tidy(multlevmodcoh_RI)
 ```
+
+cohort90 here can also use as year.
+but centering is preferably rather that year
+
+interpret: mean (or average) = 30.56 + 1.21 (cohort90) + random_effect(schoolid)
+
 
 ### Prediction - cohort
 
 ```{r}
 scoreRI_pred <- augment(multlevmodcoh_RI)
-scoreRI_pred
+head(scoreRI_pred)
 ```
 
+.fitted = 30.56 + 1.21(cohort90) + random_effect(schoolid) (see below)
+
+#### random effect
+
+```{r}
+ran_multlevmodcoh_RI <- ranef(multlevmodcoh_RI)
+head(ran_multlevmodcoh_RI$schoolid)
+```
+
+scoreij = b0j + b1cohort90ij + Eij
+boj = boo + uoj
+boo = 30.56
+uoj = random_effect(schoolid)  <- random effect at level 2
+    = -6.73  <-- for schoolid 1
+
+score = 30.56 - 6.73 + 1.21 * (-6)
+
+
+### plot
 ```{r}
 ggplot(scoreRI_pred, aes(cohort90, .fitted, group = schoolid )) + geom_point() + geom_line() + theme_minimal()
 ```
 
+.fitted <- average score for each schoolid (at each point of cohort)
+slope seem parallel <- slope similar for each schoolid
 
 
 ## Student Level - cohort (Random Slope Model)
@@ -96,7 +149,7 @@ summary(multlevmodcoh_RSb)
 
 ```{r}
 scoreRSb_pred <- augment(multlevmodcoh_RSb)
-scoreRSb_pred
+head(scoreRSb_pred)
 ```
 
 ### Compare RI & RS
@@ -109,7 +162,7 @@ anova(multlevmodcoh_RI, multlevmodcoh_RSb)
 
 ```{r}
 ra_eff_rs <- ranef(multlevmodcoh_RSb, condVar = T)
-head(ra_eff_rs)
+head(ra_eff_rs$schoolid)
 ```
 
 ```{r}
@@ -206,7 +259,7 @@ summary(multlevmodcoh_RSgen_RSb)
 
 ```{r}
 predscore2 <- augment(multlevmodcoh_RSgen_RSb)
-predscore2
+head(predscore2)
 ```
 
 ## Plot 1
