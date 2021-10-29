@@ -1,0 +1,40 @@
+---
+title: "Revise"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preamble
+
+## Library
+
+```{r}
+library(pacman)
+p_load(tidyverse, haven, summarytools)
+```
+
+## Data
+
+```{r}
+mydata <- read_dta("5.1.dta") %>% 
+  mutate(gender = fct_recode(as_factor(female), "male" = "0", "female" = "1"),
+         class2 = fct_recode(as_factor(sclass), "managerial" = "1", "intermediate" = "2", "working" = "3", "unclassified" = "4"),
+         schooltype = fct_recode(as_factor(schtype), "state" = "0", "private" = "1"),
+         schloc = fct_recode(as_factor(schurban), "town" = "0", "urban" = "1"),
+         schooldenom = fct_recode(as_factor(schdenom), "state" = "0", "private" = "1"))
+mydata
+
+
+```
+
+# Analysis
+
+## Exploratory
+
+```{r}
+mean(mydata$score)
+```
+
