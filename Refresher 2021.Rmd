@@ -25,6 +25,7 @@ mydata <- read_dta("5.1.dta") %>%
          schooltype = fct_recode(as_factor(schtype), "state" = "0", "private" = "1"),
          schloc = fct_recode(as_factor(schurban), "town" = "0", "urban" = "1"),
          schooldenom = fct_recode(as_factor(schdenom), "state" = "0", "private" = "1"))
+
 mydata
 
 
@@ -34,7 +35,35 @@ mydata
 
 ## Exploratory
 
+Mean overall
+
 ```{r}
 mean(mydata$score)
+```
+
+mean score by school
+
+```{r}
+mydata %>% 
+  group_by(schoolid) %>% 
+  summarise(meanscore = mean(score), n_stud = n())
+```
+
+alternative (using summarytools)
+
+```{r}
+# mydata %>% 
+#   group_by(schoolid) %>% 
+#   descr(score, stats = c("mean", "sd"), transpose = T)
+```
+
+
+## Null Model
+
+null model is actually overall mean
+
+```{r}
+nullmod <- lm(score ~ 1, mydata)
+summary(nullmod)
 ```
 
